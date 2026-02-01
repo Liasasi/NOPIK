@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+<meta charset="UTF-8">
+<title>NOPIK</title>
+<style>
+body { background:#0b3d2e; color:white; font-family:Arial; text-align:center }
+.player { border:1px solid gold; margin:10px; padding:10px }
+button { padding:10px 20px; margin:5px; font-size:16px }
+</style>
+</head>
+<body>
+
+<h1>🃏 NOPIK</h1>
+<button onclick="start()">התחל סיבוב</button>
+<button onclick="bet()">המר</button>
+<button onclick="reveal()">חשוף דילר</button>
+
+<h3>קופה: <span id="pot">0</span></h3>
+<div id="players"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+
+function start() { socket.emit("startRound"); }
+function bet() { socket.emit("bet"); }
+function reveal() { socket.emit("revealDealer"); }
+
+socket.on("state", data => {
+  document.getElementById("pot").innerText = data.pot;
+  const div = document.getElementById("players");
+  div.innerHTML = "";
+
+  for (let id in data.players) {
+    const p = data.players[id];
+    const d = document.createElement("div");
+    d.className = "player";
+    d.innerHTML = `
+      ${id === data.dealer ? "🧑‍⚖️ דילר" : "🧑 שחקן"}<br>
+      קלפים: ${p.cards.join(", ")}<br>
+      ערך: ${p.cards.length ? p.cards.reduce((a,c)=>a,0) : ""}
+    `;
+    div.appendChild(d);
+  }
+});
+</script>
+
+</body>
+</html>
